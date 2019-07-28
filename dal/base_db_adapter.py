@@ -19,7 +19,7 @@ class BaseDatabaseAdapter(ABC):
 
     # Add a Product
     @abstractmethod
-    def add_product(self, prod_id, prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite):
+    def add_product(self, prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite):
         pass
 
     # Edit a Product
@@ -30,12 +30,12 @@ class BaseDatabaseAdapter(ABC):
 
     # Get Product
     @abstractmethod
-    def get_product(self, prod_id):
+    def get_product(self, product_id):
         pass
 
     # Delete Product
     @abstractmethod
-    def delete_product(self, prod_id):
+    def delete_product(self, product_id):
         pass
 
     # Get All Products
@@ -45,5 +45,5 @@ class BaseDatabaseAdapter(ABC):
 
     # List Products by Category
     @abstractmethod
-    def get_product_by_category(self):
+    def get_products_by_category(self, category_id):
         pass

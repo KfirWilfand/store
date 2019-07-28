@@ -60,7 +60,11 @@ def delete_category_by_id(category_id):
 def get_categories():
     try:
         db_result = _db_adapter.get_categories()
-        result = {'STATUS': "SUCCESS", 'MSG': 'The category was created successfully', 'CATEGORIES': db_result,
+        categories = []
+        for item in db_result:
+            categories.append({'id': item[0], 'name': item[1]})
+
+        result = {'STATUS': "SUCCESS", 'MSG': 'The category was created successfully', 'CATEGORIES': categories,
                   'CODE': 200}
         return json.dumps(result)
 
@@ -69,35 +73,107 @@ def get_categories():
 
 
 @post("/product")
-def get_categories():
+def add_or_product():
     forms = request.forms
 
     try:
         prod_id = forms["id"]
         prod_title = forms["title"]
-        prod_desc = forms["description"]
+        prod_desc = forms["desc"]
         prod_price = forms["price"]
         prod_img_url = forms["img_url"]
-        prod_category_id = forms["category_id"]
-        prod_is_favorite = forms["is_favorite"]
+        prod_category_id = forms["category"]
     except Exception as error:
         return missing_parameters(error)
+
+    try:
+        prod_is_favorite = forms["favorite"]
+        if prod_is_favorite == 'on':
+            prod_is_favorite = 1
+    except:
+        prod_is_favorite = 0
 
     try:
         if not _db_adapter.is_category_exist_by_id(prod_category_id):
             result = {'STATUS': "ERROR", 'MSG': 'category not found', 'CODE': 404}
             return json.dumps(result)
 
-        if not _db_adapter.is_product_exist(prod_id):
-            _db_adapter.add_product(prod_id, prod_title, prod_desc, prod_price, prod_img_url,
-                                    prod_category_id, prod_is_favorite)
-        else:
+        if _db_adapter.is_product_exist(prod_id):
             _db_adapter.edit_product(prod_id, prod_title, prod_desc, prod_price, prod_img_url,
                                      prod_category_id, prod_is_favorite)
+        else:
+            _db_adapter.add_product(prod_title, prod_desc, prod_price, prod_img_url,
+                                    prod_category_id, prod_is_favorite)
 
         result = {'STATUS': "SUCCESS", 'PRODUCT_ID': prod_id, 'CODE': 201}
         return json.dumps(result)
 
+    except Exception as error:
+        internal_error(error)
+
+
+@delete("/product/<product_id>")
+def delete_product_by_id(product_id):
+    try:
+        if not _db_adapter.is_product_exist(product_id):
+            result = {'STATUS': "ERROR", 'MSG': 'product not found', 'CODE': 404}
+            return json.dumps(result)
+
+        _db_adapter.delete_product(product_id)
+
+        result = {'STATUS': "SUCCESS", 'CODE': 201}
+        return json.dumps(result)
+
+    except Exception as error:
+        internal_error(error)
+
+
+@get("/product/<product_id>")
+def get_product_by_id(product_id):
+    try:
+        if not _db_adapter.is_product_exist(product_id):
+            result = {'STATUS': "ERROR", 'MSG': 'product not found', 'CODE': 404}
+            return json.dumps(result)
+
+        db_result = _db_adapter.get_product(product_id)
+
+        result = {'STATUS': "SUCCESS", 'PRODUCT': db_result, 'CODE': 200}
+        return json.dumps(result)
+
+    except Exception as error:
+        internal_error(error)
+
+
+@get("/products")
+def get_products():
+    try:
+        db_result = _db_adapter.get_products()
+
+        products = []
+        for item in db_result:
+            products.append(
+                {"category": item[5], "description": item[2], "price": item[3], "title": item[1], "favorite": item[6],
+                 "img_url": item[4], "id": item[0]}, )
+
+        result = {'STATUS': "SUCCESS", 'PRODUCTS': products, 'CODE': 200}
+        return json.dumps(result)
+    except Exception as error:
+        internal_error(error)
+
+
+@get("/category/<category_id>/products")
+def get_products_by_category(category_id):
+    try:
+        db_result = _db_adapter.get_products_by_category(category_id)
+
+        products = []
+        for item in db_result:
+            products.append(
+                {"category": item[5], "description": item[2], "price": item[3], "title": item[1], "favorite": item[6],
+                 "img_url": item[4], "id": item[0]}, )
+
+        result = {'STATUS': "SUCCESS", 'PRODUCTS': products, 'CODE': 200}
+        return json.dumps(result)
     except Exception as error:
         internal_error(error)
 

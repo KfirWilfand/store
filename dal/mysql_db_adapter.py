@@ -16,13 +16,14 @@ class MySqlDBAdapter(BaseDatabaseAdapter):
         return self.execute_query("SELECT * FROM category WHERE `id` = '{}';".format(category_id))
 
     def is_product_exist(self, product_id):
-        return self.execute_query(self, "SELECT * FROM product WHERE `id` = '{}';".format(product_id))
+        return self.execute_query("SELECT * FROM product WHERE `id` = '{}';".format(product_id))
 
     def execute_query(self, query):
         print({'DEBUG DB': {'query': query}})
         with self._connection.cursor() as cursor:
             cursor.execute(query)
             result = cursor.fetchall()
+            self._connection.commit()
             return result
 
     def get_last_category_id(self):
@@ -44,30 +45,35 @@ class MySqlDBAdapter(BaseDatabaseAdapter):
         return self.execute_query(query);
 
     # Add a Product
-    def add_product(self, prod_id, prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite):
-        query = "INSERT INTO `product`(`id`, `title`, `desc`, `price`, `img_url`, `category_id`, `favorite`) VALUES({}, '{}', '{}', '{}', '{}', '{}', {});".format(
-            prod_id, prod_title, prod_desc, prod_price,
-            prod_img_url, prod_category_id, prod_is_favorite)
-
+    def add_product(self, prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite):
+        query = "INSERT INTO `product`(`title`, `desc`, `price`, `img_url`, `category_id`, `favorite`) VALUES('{}', '{}', '{}', '{}', '{}', {});".format(
+            prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite)
         self.execute_query(query)
 
     # Edit a Product
     def edit_product(self, prod_id, prod_title, prod_desc, prod_price, prod_img_url, prod_category_id,
                      prod_is_favorite):
-        return 0
+        query = "UPDATE `product` SET `title` = '{}' , `desc` = '{}' , `price` = '{}' , `img_url` = '{}' , `category_id` = '{}' , `favorite` = '{}' WHERE(`id` = '{}');".format(
+            prod_title, prod_desc, prod_price, prod_img_url, prod_category_id, prod_is_favorite, prod_id)
+        self.execute_query(query)
 
     #  Get Product
-    def get_product(self, prod_id):
-        pass
+    def get_product(self, product_id):
+        query = "SELECT (`category_id`, `desc`, `price`, `title`, `favorite`, `img_url`, `id`) FROM product WHERE `id` = {};".format(
+            product_id)
+        return self.execute_query(query)
 
     # Delete Product
-    def delete_product(self, prod_id):
-        pass
+    def delete_product(self, product_id):
+        query = "DELETE FROM `product` WHERE(`id` = '{}');".format(product_id)
+        self.execute_query(query)
 
     # Get All Products
     def get_products(self):
-        pass
+        query = "SELECT * FROM product"
+        return self.execute_query(query)
 
     # List Products by Category
-    def get_product_by_category(self):
-        pass
+    def get_products_by_category(self, category_id):
+        query = "SELECT * FROM product where `category_id` = {}".format(category_id)
+        return self.execute_query(query)
